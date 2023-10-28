@@ -62,3 +62,6 @@ modules.xml
 profile_default/
 ipython_config.py
 /.idea/vcs.xml
+
+# Training results because some files are too big
+/training_results/*
