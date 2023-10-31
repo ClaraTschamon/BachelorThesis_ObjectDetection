@@ -89,13 +89,10 @@ class Inference:
                 class_name = max_confidence_point['class_name']
                 recognized_pieces.append({'square': square_name, 'class_name': class_name})
 
-        for piece in recognized_pieces:
-            print(piece)
-
         return recognized_pieces
 
     def inference_yolov5(self, image, grid):
-        model = torch.hub.load('ultralytics/yolov5', 'custom', path='training_results/runs/train/results_yolov5m/exp3/weights/best.pt')
+        model = torch.hub.load('ultralytics/yolov5', 'custom', path='training_results/runs/train/results_yolov5m/exp5/weights/best.pt')
 
 
         #model.conf = 0.7  # NMS confidence threshold

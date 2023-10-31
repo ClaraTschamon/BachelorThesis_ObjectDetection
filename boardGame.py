@@ -6,24 +6,25 @@ class ChessGame:
     def __init__(self):
         # mapping of piece class names to FEN symbols
         self.__piece_mapping = {
-            'white-king': 'K',
-            'white-queen': 'Q',
-            'white-rook': 'R',
-            'white-bishop': 'B',
-            'white-knight': 'N',
-            'white-pawn': 'P',
-            'black-king': 'k',
-            'black-queen': 'q',
-            'black-rook': 'r',
-            'black-bishop': 'b',
-            'black-knight': 'n',
-            'black-pawn': 'p',
+            'White-king': 'K',
+            'White-queen': 'Q',
+            'White-rook': 'R',
+            'White-bishop': 'B',
+            'White-knight': 'N',
+            'White-pawn': 'P',
+            'Black-king': 'k',
+            'Black-queen': 'q',
+            'Black-rook': 'r',
+            'Black-bishop': 'b',
+            'Black-knight': 'n',
+            'Black-pawn': 'p',
         }
         self.__depth = 20
         self.__skill_level = 20
         self.__stockfish = Stockfish("stockfish-windows-x86-64.exe")
         self.__stockfish.set_depth(self.__depth)  # TODO: look up what that means
         self.__stockfish.set_skill_level(self.__skill_level)  # 0 = lowest, 20 = highest
+        self.current_board = None
 
     def get_skill_level(self):
         return self.__skill_level
@@ -63,17 +64,52 @@ class ChessGame:
 
         return fen
 
-    def get_fen(self, recognized_pieces):
+    def get_fen_string(self, recognized_pieces):
         fen = self.__make_fen_string(recognized_pieces)
+
+        # if it is not the first capture of the board:
+        # check if the move made is valid if it was valid return the fen
+        #if self.current_board is not None:
+        #    new_board = chess.Board(fen)
+        #    for move in self.current_board.legal_moves:
+        #        self.current_board.push(move)
+        #        if self.current_board.board_fen() == new_board.board_fen():
+        #            return fen, True  # valid move
+        #        _ = self.current_board.pop()
+        #    else:
+        #        return fen, False  # invalid fen
+        #else:
+        #    self.current_board = chess.Board(fen)
+        #    return fen, True  # function was called for the first time
+        self.current_board = chess.Board(fen)
         return fen
 
-    def make_next_move(self, recognized_pieces):
-        board = self.get_fen(recognized_pieces)
-        fen = board.fen()
-        self.__stockfish.set_fen_position(fen)
-        board.turn = chess.BLACK
-        board.push_san(self.__stockfish.get_best_move())
-        return board.fen()
+    def make_move(self, recognized_pieces):
+        fen = self.__make_fen_string(recognized_pieces)
+        print('Make computer move called, FEN: ' + fen)
+
+        # check if players move was valid and then make the computer move one black figure
+        new_board = chess.Board(fen)
+        print(self.current_board)
+        print(self.current_board.legal_moves)
+        for move in self.current_board.legal_moves:
+            self.current_board.push(move)
+            if self.current_board.board_fen() == new_board.board_fen():
+                # it was a valid move and now the computer needs make a move
+
+                try:
+                    self.__stockfish.set_fen_position(fen)
+                    self.current_board.turn = chess.BLACK
+                    self.current_board.push_san(self.__stockfish.get_best_move())
+                    self.current_board.turn = chess.WHITE
+                    return self.current_board.fen(), True
+                except:
+                    return fen, False
+
+            _ = self.current_board.pop()
+        else:
+            return fen, False  # players move was invalid
+
 
     def get_is_check(self, fen):
         board = chess.Board(fen)

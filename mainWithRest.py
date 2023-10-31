@@ -70,8 +70,8 @@ class ChessApp:
         self.board = None
 
         # Row 2: Text
-        self.check_mate_label = tk.Label(self.start_frame, text="", font=("Helvetica", 20))
-        self.check_mate_label.grid(row=3, column=0, columnspan=3, padx=self.padding, pady=self.padding)
+        self.info_label = tk.Label(self.start_frame, text="", font=("Helvetica", 20))
+        self.info_label.grid(row=2, column=0, padx=self.padding, pady=self.padding)
 
 
     def __get_chessboard_image(self):
@@ -125,7 +125,7 @@ class ChessApp:
             # Convert the image to bytes for transmission
             _, image_bytes = cv2.imencode('.jpg', frame)
             response = requests.post(self.url+'/detect-board', files={'image': ('image.jpg', image_bytes.tobytes())})
-
+            print("response recieved")
             if response.status_code == 200:
                 data = response.json()
                 if 'grid' and 'image' in data:
@@ -173,6 +173,7 @@ class ChessApp:
                     self.image_label.grid(row=2, column=0, padx=self.padding, pady=self.padding)
 
                 else:
+                    print("Schachbrett konnte nicht erkannt werden")
                     print(data['message'])  # Output the message from the API
                     self.retake_button.grid_remove()
                     self.image_label.grid_remove()
@@ -251,14 +252,20 @@ class ChessApp:
         chessboard_label.image = chessboard_image
 
     def check_if_game_over(self):
-        if requests.get(self.url+'/is-check', params={'fen': self.board.fen()}).text == 'True':
-            self.check_mate_label.config(text="Schach!")
-        elif requests.get(self.url+'/is-checkmate', params={'fen': self.board.fen()}).text == 'True':
-            self.check_mate_label.config(text="Schachmatt!")
+        is_check_response = requests.get(self.url + '/is-check', params={'fen': self.board.fen()}).json()
+        is_checkmate_response = requests.get(self.url + '/is-checkmate', params={'fen': self.board.fen()}).json()
+
+        if is_check_response:
+            self.info_label.config(text="Schach!")
+            self.info_label.grid(row=2, column=0, padx=self.padding, pady=self.padding)
+        elif is_checkmate_response:
+            self.info_label.config(text="Schachmatt!")
+            self.info_label.grid(row=2, column=0, padx=self.padding, pady=self.padding)
             self.__stop_game()
-            #TODO: spiel stoppen -> Neustart button anzeigen
+            # TODO: spiel stoppen -> Neustart button anzeigen
         else:
-            self.check_mate_label.config(text="")
+            self.info_label.config(text="")
+            self.info_label.grid(row=2, column=0, padx=self.padding, pady=self.padding)
 
     def __call_computer_turn(self):
         self.check_if_game_over()
@@ -266,16 +273,25 @@ class ChessApp:
         self.__toggle_turn()
         image = self.__get_chessboard_image_small()
         recognized_pieces = self.__detect_figures(image)
-        self.board = chess.Board(fen=requests.get(self.url+'/make-next-move', json={'recognized_pieces': recognized_pieces}))
-        self.check_if_game_over()
-        self.__update_board_img(self.board)
-        self.__play_game(None)
 
+        response = requests.get(self.url + '/make-move', json={'recognized_pieces': recognized_pieces})
+        if response.status_code == 200: #todo: wenn game over dann kommt sowieso 400 zurück
+            fen = response.text  # Get the content of the response as text
+            self.board = chess.Board(fen=fen)
+            self.__update_board_img(self.board)
+            self.__play_game(None)
+        elif response.status_code == 400:
+            self.__update_board_img(self.board)
+            self.info_label.config(text="Ungültiger Zug! Computer konnte keinen Zug machen")
+            self.info_label.grid(row=2, column=0, padx=self.padding, pady=self.padding)
+            self.check_if_game_over() # todo: ausprobieren
+            self.__play_game(None)
 
     def __play_game(self, recognized_pieces):
 
         if recognized_pieces is not None:
             response = requests.get(self.url+'/get-fen', json={'recognized_pieces': recognized_pieces})
+
             fen = response.text
             self.board = chess.Board(fen=fen)
             self.__update_board_img(self.board)

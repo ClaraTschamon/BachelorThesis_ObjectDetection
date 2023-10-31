@@ -52,7 +52,6 @@ def inference():
 
     figure_detector = Inference()
     recognized_pieces = figure_detector.inference_yolov5(image, grid_dict)
-    print(recognized_pieces)
     return recognized_pieces
 
 @app.route('/get-fen', methods=['GET'])
@@ -60,7 +59,7 @@ def get_fen():
     # Get the recognized pieces from the request
     data = request.get_json()
     recognized_pieces = data.get('recognized_pieces', {})
-    fen = chess_game.get_fen(recognized_pieces)
+    fen = chess_game.get_fen_string(recognized_pieces)
     return fen
 
 @app.route('/is-check', methods=['GET']) #noch nicht getestet
@@ -70,7 +69,9 @@ def is_check():
     if not fen:
         return jsonify({'error': 'FEN not provided'}), 400
 
-    return chess_game.get_is_check(fen)
+    is_check_result = chess_game.get_is_check(fen)
+
+    return jsonify({'is_check': is_check_result})
 
 @app.route('/is-checkmate', methods=['GET']) #noch nicht getestet
 def is_checkmate():
@@ -79,16 +80,27 @@ def is_checkmate():
     if not fen:
         return jsonify({'error': 'FEN not provided'}), 400
 
-    return chess_game.get_is_checkmate(fen)
+    is_checkmate_result = chess_game.get_is_checkmate(fen)
 
-@app.route('/make-next-move', methods=['GET']) #noch nicht getestet
-def make_next_move():
+    return jsonify({'is_checkmate': is_checkmate_result})
+
+@app.route('/make-move', methods=['GET']) #noch nicht getestet
+def make_move():
     # Get the recognized pieces from the request
     data = request.get_json()
     recognized_pieces = data.get('recognized_pieces', {})
-    fen = chess_game.make_next_move(recognized_pieces)
-    return fen
+    boolean = False
+    try:
+        fen, boolean = chess_game.make_move(recognized_pieces)
+    except Exception as e:
+        print(f'Exception occurred while making the move: {str(e)}')
+
+
+    if boolean is False:
+            print('Could not make next move')
+            return jsonify({'error': 'Could not make next move'}), 400
+    else:
+        return fen
 
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8080, debug=True)
-

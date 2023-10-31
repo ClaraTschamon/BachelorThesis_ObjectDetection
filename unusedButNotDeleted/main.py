@@ -33,7 +33,7 @@ class ChessApp:
         self.start_button.grid(row=0, column=0, padx=self.padding, pady=self.padding)
 
         # Load the "retake.png" image and resize it
-        self.retake_image = Image.open("./assets/retake.png")
+        self.retake_image = Image.open("../assets/retake.png")
         self.retake_image = self.retake_image.resize((25, 25))  # Set the desired width and height
         self.retake_photo = ImageTk.PhotoImage(self.retake_image)
         self.retake_button = tk.Button(self.start_frame, image=self.retake_photo, command=self.detect_board)
@@ -51,11 +51,11 @@ class ChessApp:
         self.is_user_turn = True
 
         # Load the check and cross images
-        self.check_image = Image.open("./assets/checked.png")
+        self.check_image = Image.open("../assets/checked.png")
         self.check_image = self.check_image.resize((40, 40))
         self.check_image = ImageTk.PhotoImage(self.check_image)
 
-        self.cross_image = Image.open("./assets/cancel.png")
+        self.cross_image = Image.open("../assets/cancel.png")
         self.cross_image = self.cross_image.resize((40, 40))
         self.cross_image = ImageTk.PhotoImage(self.cross_image)
 
@@ -228,7 +228,7 @@ class ChessApp:
         self.__toggle_turn()
         image = self.__get_chessboard_image_small()
         recognized_pieces = self.__detect_figures(image)
-        self.board = self.game.make_next_move(recognized_pieces) #todo: board muss glaube ich nicht self sein #todo: over rest interface
+        self.board = self.game.make_move(recognized_pieces) #todo: board muss glaube ich nicht self sein #todo: over rest interface
         self.check_if_game_over()
         self.__update_board_img(self.board)
         self.__play_game(None)

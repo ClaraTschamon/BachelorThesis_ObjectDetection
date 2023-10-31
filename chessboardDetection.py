@@ -394,7 +394,7 @@ class ChessboardDetection:
         cv2.drawContours(image, [largest_square_contour], -1, COLOR_GREEN, 3)
 
         image = cv2.resize(image, (0, 0), fx=1, fy=1)
-        display_image('Largest Square Contour', image)
+        #display_image('Largest Square Contour', image)
 
         # Define the color range you want to detect (in BGR format) (I only want to consider the green lines and do
         # a hough line detection on them)
@@ -477,7 +477,7 @@ class ChessboardDetection:
         self.max_vertical_angle_deg = max_vertical_angle + 2
         self.min_vertical_angle_deg = min_vertical_angle - 2
 
-        display_image('Detected Lines', image)
+        #display_image('Detected Lines', image)
 
         points = detect_line_intersections(None, None, lines)
 
@@ -489,7 +489,7 @@ class ChessboardDetection:
          bottom_left_margin,
          bottom_right_margin) = draw_edgepoints(image, points)
 
-        display_image('Frame Detection', image)
+        #display_image('Frame Detection', image)
 
         return top_left_margin, top_right_margin, bottom_left_margin, bottom_right_margin
 
@@ -567,7 +567,7 @@ class ChessboardDetection:
         # Draw intersection points
         draw_points(image, points)
 
-        display_image('Clustered Intersection Points', image)
+        #display_image('Clustered Intersection Points', image)
 
         # create grid and label the cells with chess field names
         grid = define_chess_grid(image, points)
