@@ -6,13 +6,15 @@ import cv2
 import numpy as np
 
 import chessboardDetection
-from boardGame import ChessGame
-from inference import Inference
+import chessGame
+from chessGame import ChessGame
+from inference import *
 
 app = Flask(__name__)
 
 chessboard_detector = chessboardDetection.ChessboardDetection()
 chess_game = ChessGame()
+
 
 @app.route('/detect-board', methods=['POST'])
 def detect_chessboard():
@@ -21,7 +23,6 @@ def detect_chessboard():
 
     image_file = request.files['image']
     image = cv2.imdecode(np.fromstring(image_file.read(), np.uint8), cv2.IMREAD_COLOR)
-
 
     grid, result_image = chessboard_detector.detect_chessboard(image)
 
@@ -39,6 +40,7 @@ def detect_chessboard():
 
     return jsonify(response_data)
 
+
 @app.route('/inference', methods=['POST'])
 def inference():
     if 'image' not in request.files:
@@ -50,37 +52,39 @@ def inference():
     grid_json = request.form.get('grid')  # Retrieve the grid data as a string
     grid_dict = json.loads(grid_json)  # Parse the grid data as a dictionary
 
-    figure_detector = Inference()
-    recognized_pieces = figure_detector.inference_yolov5(image, grid_dict)
+    recognized_pieces = inference_yolov5(image, grid_dict)
     return recognized_pieces
+
 
 @app.route('/get-fen', methods=['GET'])
 def get_fen():
     # Get the recognized pieces from the request
     data = request.get_json()
     recognized_pieces = data.get('recognized_pieces', {})
-    fen = chess_game.get_fen_string(recognized_pieces)
-    return fen
+    fen, valid = chess_game.get_fen_string(recognized_pieces)
+    return jsonify({'fen': fen, 'valid': valid})
 
-@app.route('/is-check', methods=['GET']) #noch nicht getestet
+
+@app.route('/is-check', methods=['GET'])  # noch nicht getestet
 def is_check():
     fen = request.args.get('fen')
 
     if not fen:
         return jsonify({'error': 'FEN not provided'}), 400
 
-    is_check_result = chess_game.get_is_check(fen)
+    is_check_result = chessGame.get_is_check(fen)
 
     return jsonify({'is_check': is_check_result})
 
-@app.route('/is-checkmate', methods=['GET']) #noch nicht getestet
+
+@app.route('/is-checkmate', methods=['GET'])  # noch nicht getestet
 def is_checkmate():
     fen = request.args.get('fen')
 
     if not fen:
         return jsonify({'error': 'FEN not provided'}), 400
 
-    is_checkmate_result = chess_game.get_is_checkmate(fen)
+    is_checkmate_result = chessGame.get_is_checkmate(fen)
 
     return jsonify({'is_checkmate': is_checkmate_result})
 
@@ -123,6 +127,7 @@ def set_skill_level():
         return jsonify({'message': 'Skill level updated successfully'})
     except Exception as e:
         return jsonify({'error': 'Invalid skill level or error: {}'.format(str(e))}), 400
+
 
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8080, debug=True)

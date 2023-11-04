@@ -89,9 +89,9 @@ class ChessApp:
         self.cross_image = self.cross_image.resize((40, 40))
         self.cross_image = ImageTk.PhotoImage(self.cross_image)
 
-        self.turn_text_label = tk.Label(self.main_frame, font=("Helvetica", 20))
-        self.turn_text_label.grid(row=1, column=0, padx=self.padding, pady=self.padding)
-        self.turn_text_label.grid_remove()
+        self.valid_label = tk.Label(self.main_frame, font=("Helvetica", 20))
+        self.valid_label.grid(row=1, column=0, padx=self.padding, pady=self.padding)
+        self.valid_label.grid_remove()
 
         self.game_info_label = tk.Label(self.main_frame, font=("Helvetica", 20))
         self.game_info_label.grid(row=2, column=0, padx=self.padding, pady=self.padding)
@@ -208,11 +208,11 @@ class ChessApp:
     # Function to toggle the turn and update the turn label
     def _toggle_turn(self):
         if self.is_user_turn:
-            self.turn_text_label.config(text="Computer ist am Zug!")
+            self.valid_label.config(text="Computer ist am Zug!")
             is_user_turn = False
             self.check_cross_label.config(image=self.cross_image)
         else:
-            self.turn_text_label.config(text="Du bist am Zug!")
+            self.valid_label.config(text="Du bist am Zug!")
             is_user_turn = True
             self.check_cross_label.config(image=self.check_image)
 
@@ -253,6 +253,7 @@ class ChessApp:
         fen = data['fen']
         valid = data['valid']
         self.board = chess.Board(fen=fen)
+        self.valid_board = valid
         self._update_board_img()
 
         if valid:
@@ -286,9 +287,10 @@ class ChessApp:
 
         if recognized_pieces is not None:
             response = requests.get(self.url + '/get-fen', json={'recognized_pieces': recognized_pieces})
-
-            fen = response.text
+            data = response.json()
+            fen = data['fen']
             self.board = chess.Board(fen=fen)
+            self.valid_board = data['valid']
             self._update_board_img()
 
         # Row 0: Images and Finish Button
@@ -300,8 +302,11 @@ class ChessApp:
         self.retake_button.config(command=self._start_game)
         self.retake_button.grid(row=0, column=2, padx=self.padding, pady=self.padding)
 
-        self.turn_text_label.config(text="Du bist am Zug!")
-        self.turn_text_label.grid(row=1, column=0, columnspan=2, pady=self.padding/2)
+        if self.valid_board:
+            self.valid_label.config(text="Gültiges Brett")
+        else:
+            self.valid_label.config(text="Ungültiges Brett")
+        self.valid_label.grid(row=1, column=0, columnspan=2, pady=self.padding / 2)
 
         # Update the image_label with the new image and make it visible
         self.check_cross_label.config(image=self.check_image)
