@@ -22,6 +22,7 @@ def detect_chessboard():
     image_file = request.files['image']
     image = cv2.imdecode(np.fromstring(image_file.read(), np.uint8), cv2.IMREAD_COLOR)
 
+
     grid, result_image = chessboard_detector.detect_chessboard(image)
 
     # Encode the result image as a base64 string
@@ -32,7 +33,6 @@ def detect_chessboard():
 
     if grid is not None:
         response_data['message'] = 'Chessboard detected'
-
         response_data['grid'] = json.dumps(str(grid))
     else:
         response_data['message'] = 'No chessboard detected'
@@ -84,23 +84,45 @@ def is_checkmate():
 
     return jsonify({'is_checkmate': is_checkmate_result})
 
-@app.route('/make-move', methods=['GET']) #noch nicht getestet
+
+@app.route('/make-move', methods=['POST'])
 def make_move():
-    # Get the recognized pieces from the request
-    data = request.get_json()
-    recognized_pieces = data.get('recognized_pieces', {})
-    boolean = False
     try:
-        fen, boolean = chess_game.make_move(recognized_pieces)
+        data = request.get_json()
+        recognized_pieces = data['recognized_pieces']
+        fen, valid, black_check, black_checkmate, white_check, white_checkmate = chess_game.make_move(recognized_pieces)
+        response_data = {
+            'fen': fen,
+            'valid': valid
+        }
+
+        if black_checkmate:
+            response_data['checkmate'] = 'black'
+        elif white_checkmate:
+            response_data['checkmate'] = 'white'
+
+        if black_check:
+            response_data['check'] = 'black'
+        elif white_check:
+            response_data['check'] = 'white'
+
+        return jsonify(response_data), 200
+
+
     except Exception as e:
         print(f'Exception occurred while making the move: {str(e)}')
+        return jsonify({'error': 'Invalid move or error: {}'.format(str(e))}), 400
 
 
-    if boolean is False:
-            print('Could not make next move')
-            return jsonify({'error': 'Could not make next move'}), 400
-    else:
-        return fen
+@app.route('/set-skill-level', methods=['POST'])
+def set_skill_level():
+    try:
+        data = request.get_json()
+        skill_level = data['skill_level']
+        chess_game.set_skill_level(skill_level)
+        return jsonify({'message': 'Skill level updated successfully'})
+    except Exception as e:
+        return jsonify({'error': 'Invalid skill level or error: {}'.format(str(e))}), 400
 
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8080, debug=True)

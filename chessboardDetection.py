@@ -296,8 +296,6 @@ def define_chess_grid(image, points):
                 "corner_d": corner_d
             }
 
-    print(field_coordinates)
-
     # Draw lines connecting the points
     for row in range(grid.shape[0] - 1):
         for col in range(grid.shape[1]):
@@ -388,7 +386,6 @@ class ChessboardDetection:
 
         # Draw the largest square contour on the image
         if largest_square_contour is None:
-            print("No frame detected")
             return None, None, None, None
 
         cv2.drawContours(image, [largest_square_contour], -1, COLOR_GREEN, 3)
@@ -412,7 +409,6 @@ class ChessboardDetection:
         lines = cv2.HoughLines(color_mask, rho=0.6, theta=np.pi / 180, threshold=120)
 
         if lines is None:
-            print("No lines detected")
             return None, None, None, None
 
         horizontal_lines = []
@@ -445,12 +441,14 @@ class ChessboardDetection:
                 cv2.line(image, (x1, y1), (x2, y2), COLOR_BLUE, 2)  # Color vertical lines in blue
 
         # Find maximum and minimum angles for horizontal lines
-        max_horizontal_angle = max(np.degrees(line[0][1]) for line in horizontal_lines)
-        min_horizontal_angle = min(np.degrees(line[0][1]) for line in horizontal_lines)
+        if not len(horizontal_lines) == 0:
+            max_horizontal_angle = max(np.degrees(line[0][1]) for line in horizontal_lines)
+            min_horizontal_angle = min(np.degrees(line[0][1]) for line in horizontal_lines)
 
         # Find maximum and minimum angles for vertical lines
-        max_vertical_angle = max(np.degrees(line[0][1]) for line in vertical_lines)
-        min_vertical_angle = min(np.degrees(line[0][1]) for line in vertical_lines)
+        if not len(vertical_lines) == 0:
+            max_vertical_angle = max(np.degrees(line[0][1]) for line in vertical_lines)
+            min_vertical_angle = min(np.degrees(line[0][1]) for line in vertical_lines)
 
         # Consider that the angle of the line can be written in two ways (e.g. 0 degrees and 180 degrees)
         if max_horizontal_angle > 45:
@@ -528,8 +526,7 @@ class ChessboardDetection:
             for i in range(num_lines):
                 line = linesP[i][0]
                 cv2.line(image, (line[0], line[1]), (line[2], line[3]), COLOR_RED, 2, cv2.LINE_AA)
-        else:
-            print("No lines detected")
+
 
         #display_image('Probabilistic Hough Line Transformation', image)
 
@@ -561,7 +558,6 @@ class ChessboardDetection:
         points = detect_line_intersections(horizontal_lines, vertical_lines, None)
 
         if len(points) != 81:
-            print("No chessboard detected")
             return None, image
 
         # Draw intersection points
@@ -582,13 +578,11 @@ class ChessboardDetection:
         top_left_margin, top_right_margin, bottom_left_margin, bottom_right_margin = self._detect_frame(
             image)
         if top_left_margin is None or top_right_margin is None or bottom_left_margin is None or bottom_right_margin is None:
-            print("No chessboard detected")
             return None, image
         else:
             grid, image = self._detect_grid(top_left_margin, top_right_margin, bottom_left_margin, bottom_right_margin,
                                             original_image)
             if grid is not None:
-                print("Chessboard detected")
                 return grid, image
 
 
