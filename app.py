@@ -12,6 +12,7 @@ import cv2
 import numpy as np
 from PIL import ImageTk, Image
 
+
 def get_image():
     cap = cv2.VideoCapture(1)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
@@ -46,6 +47,9 @@ def get_image():
 
 class ChessApp:
     def __init__(self):
+        # define a static COLOR_GREEN variable
+        self.COLOR_GREEN = '#228B22'
+        self.COLOR_RED = '#DC143C'
         self.url = 'http://127.0.0.1:8080/'
 
         # Add padding around the grid
@@ -67,7 +71,7 @@ class ChessApp:
         self.retake_image = self.retake_image.resize((25, 25))  # Set the desired width and height
         self.retake_photo = ImageTk.PhotoImage(self.retake_image)
         self.retake_button = tk.Button(self.main_frame, image=self.retake_photo, command=self._detect_board)
-        self.retake_button.grid(row=0, column=1, padx=self.padding, pady=self.padding)
+        self.retake_button.grid(row=0, column=1, sticky="e")
         self.retake_button.grid_remove()  # Hide the retake_button initially
 
         self.image_label = tk.Label(self.main_frame)
@@ -80,26 +84,13 @@ class ChessApp:
 
         self.is_user_turn = True
 
-        # Load the check and cross images
-        self.check_image = Image.open("./assets/checked.png")
-        self.check_image = self.check_image.resize((40, 40))
-        self.check_image = ImageTk.PhotoImage(self.check_image)
-
-        self.cross_image = Image.open("./assets/cancel.png")
-        self.cross_image = self.cross_image.resize((40, 40))
-        self.cross_image = ImageTk.PhotoImage(self.cross_image)
-
         self.valid_label = tk.Label(self.main_frame, font=("Helvetica", 20))
-        self.valid_label.grid(row=1, column=0, padx=self.padding, pady=self.padding)
+        self.valid_label.grid(row=1, column=0, sticky="w", padx=self.padding, pady=self.padding)
         self.valid_label.grid_remove()
 
         self.game_info_label = tk.Label(self.main_frame, font=("Helvetica", 20))
         self.game_info_label.grid(row=2, column=0, padx=self.padding, pady=self.padding)
         self.game_info_label.grid_remove()
-
-        self.check_cross_label = tk.Label(self.main_frame)
-        self.check_cross_label.grid(row=0, column=1, padx=self.padding, pady=self.padding)
-        self.check_cross_label.grid_remove()
 
         self.board = None
 
@@ -110,12 +101,13 @@ class ChessApp:
         # spinner for skill level
         self.skill_level = 20
         self.spinner_label = tk.Label(self.main_frame, text="Schwierigkeitsgrad auswählen:")
-        self.spinner_label.grid(row=3, column=0, padx=self.padding, pady=self.padding)
+        self.spinner_label.grid(row=3, column=0, sticky='e', padx=self.padding, pady=self.padding)
         self.spinner_label.grid_remove()
 
         current_value = tk.StringVar(value=self.skill_level)
-        self.skill_level_spinner = tk.Spinbox(self.main_frame, from_=1, to=20, width=5, textvariable=current_value, command=self._update_skill_level)
-        self.skill_level_spinner.grid(row=3, column=1, padx=self.padding, pady=self.padding)
+        self.skill_level_spinner = tk.Spinbox(self.main_frame, from_=1, to=20, width=5, textvariable=current_value,
+                                              command=self._update_skill_level)
+        self.skill_level_spinner.grid(row=3, column=1, sticky='e', padx=self.padding, pady=self.padding)
         self.skill_level_spinner.grid_remove()
 
     def _detect_board(self):
@@ -210,11 +202,9 @@ class ChessApp:
         if self.is_user_turn:
             self.valid_label.config(text="Computer ist am Zug!")
             is_user_turn = False
-            self.check_cross_label.config(image=self.cross_image)
         else:
             self.valid_label.config(text="Du bist am Zug!")
             is_user_turn = True
-            self.check_cross_label.config(image=self.check_image)
 
         return is_user_turn
 
@@ -274,12 +264,12 @@ class ChessApp:
                         elif check == 'white':
                             self.info_label.config(text="Weißer Spieler ist Schach!")
                     else:
-                        self.info_label.config(text="Dies war ein gültiger Zug.")
+                        self.info_label.config(text="Dies war ein gültiger Zug.", fg=self.COLOR_GREEN)
             else:
-                self.info_label.config(text="Dies war ein gültiger Zug.")
+                self.info_label.config(text="Dies war ein gültiger Zug.", fg=self.COLOR_GREEN)
 
         else:
-            self.info_label.config(text="Ungültiger Zug oder ungültige Aufstellung!")
+            self.info_label.config(text="Ungültiger Zug oder ungültige Aufstellung!", fg=self.COLOR_RED)
 
         self._play_game(None)
 
@@ -303,19 +293,15 @@ class ChessApp:
         self.retake_button.grid(row=0, column=2, padx=self.padding, pady=self.padding)
 
         if self.valid_board:
-            self.valid_label.config(text="Gültiges Brett")
+            self.valid_label.config(text="Gültiges Brett", fg=self.COLOR_GREEN)
         else:
-            self.valid_label.config(text="Ungültiges Brett")
+            self.valid_label.config(text="Ungültiges Brett", fg=self.COLOR_RED)
         self.valid_label.grid(row=1, column=0, columnspan=2, pady=self.padding / 2)
 
-        # Update the image_label with the new image and make it visible
-        self.check_cross_label.config(image=self.check_image)
-        self.check_cross_label.grid(row=0, column=1, padx=self.padding, pady=self.padding)
-
-        self.info_label.grid(row=2, column=0, columnspan=2, pady=self.padding/2)
+        self.info_label.grid(row=2, column=0, columnspan=2, pady=self.padding / 2)
 
         self.spinner_label.grid(row=1, column=3, padx=self.padding, pady=self.padding)
-        self.skill_level_spinner.grid(row=2, column=3, pady=self.padding/2)
+        self.skill_level_spinner.grid(row=2, column=3, pady=self.padding / 2)
 
     def _update_skill_level(self):
         new_skill_level = int(self.skill_level_spinner.get())
@@ -329,7 +315,6 @@ class ChessApp:
                     print(f"Failed to set skill level. Status code: {response.status_code}")
             except requests.exceptions.RequestException as e:
                 print(f"Failed to connect to the server: {e}")
-
 
     def run(self):
         self.main_screen.mainloop()

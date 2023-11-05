@@ -95,18 +95,23 @@ class ChessGame:
             if self.current_board.board_fen() == new_board.board_fen():
                 # it was a valid move and now we need to check if the black player is in check
                 if self.current_board.is_check():  # https://python-chess.readthedocs.io/en/latest/core.html
+                    print("Black is in check")
                     return fen, True, True, False, False, False
                 elif self.current_board.is_checkmate():
+                    print("Black is in checkmate")
                     return fen, True, False, True, False, False
                 else:
                     # now the computer needs make a move
                     self.stockfish.set_fen_position(fen)
                     self.current_board.turn = chess.BLACK
                     self.current_board.push_san(self.stockfish.get_best_move())
+                    print("Computer move: " + str(self.current_board.peek()))
                     # check if the white player is in check
                     if self.current_board.is_check():
+                        print("White is in check")
                         return fen, True, False, False, True, False
                     elif self.current_board.is_checkmate():
+                        print("White is in checkmate")
                         return fen, True, False, False, False, True
                     else:  # no one is check
                         self.current_board.turn = chess.WHITE

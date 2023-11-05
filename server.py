@@ -1,8 +1,6 @@
 import base64
-import json
 
 from flask import Flask, request, jsonify
-import cv2
 import numpy as np
 
 import chessboardDetection
