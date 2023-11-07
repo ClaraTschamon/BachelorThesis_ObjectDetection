@@ -1,0 +1,23 @@
+Also was mache ich jetzt mit den informationen, wo die Figur ist? 
+Hat jedes erkennt Objekt vielleicht eine eindeutige ID?
+
+Kann ich eine Funktion schreiben, in die ich die eindeutige ID eingebe und dann die Information zurück bekomme, wie weit das
+Objekt entfernt ist?
+
+Inwiefern habe ich OpenCV Stereovision eingesetzt?
+
+
+
+--> Bild machen mit beiden Kameras
+--> Schachbrett erkennen mit color camera
+--> detection und mapping auf grid von color camera
+--> funktion schreiben, in die eine eindeutige ID eingegeben wird und die Information zurück bekommen wird, wie weit das Objekt entfernt ist
+
+
+
+
+Könnt ihr mir noch konkrete angaben geben, was ich damit machen soll?
+-> Ich kann vom erkennten schachbrett ein feld abfragen mit .getKey und dann den Mittelpunkt berechnen und dann in 3D kooridnaten umwandeln
+https://medium.com/@yasuhirachiba/converting-2d-image-coordinates-to-3d-coordinates-using-ros-intel-realsense-d435-kinect-88621e8e733a
+
+Ich kann den Abstand und die 3D koordinate einer Bestimmten Figur zurückgeben
