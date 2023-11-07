@@ -8,8 +8,8 @@ import cv2
 
 
 # load previously saved calibration data
-calib_data = np.load('calib.npz')
-cmx = calib_data['cmx']
+calib_data = np.load('./cameraCalibration/CameraParams.npz')
+cmx = calib_data['cameraMatrix']
 dist = calib_data['dist']
 
 def draw(img, corners, imgpts):

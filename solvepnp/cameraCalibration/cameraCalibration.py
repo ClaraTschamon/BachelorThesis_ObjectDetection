@@ -80,7 +80,7 @@ dst = cv2.undistort(img, cameraMatrix, dist, None, newCameraMatrix)
 # crop the image
 x, y, w, h = roi
 dst = dst[y:y+h, x:x+w]
-cv2.imwrite('caliResult1.png', dst)
+#cv2.imwrite('../../caliResult1.png', dst)
 
 
 
@@ -91,7 +91,7 @@ dst = cv2.remap(img, mapx, mapy, cv2.INTER_LINEAR)
 # crop the image
 x, y, w, h = roi
 dst = dst[y:y+h, x:x+w]
-cv2.imwrite('caliResult2.png', dst)
+#cv2.imwrite('../../caliResult2.png', dst)
 
 
 
