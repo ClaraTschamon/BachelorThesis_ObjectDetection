@@ -6,7 +6,7 @@ import cv2
 import torch
 
 import app
-import chessboardDetection
+import chessboardDetector
 
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"

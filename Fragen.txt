@@ -1,23 +1,19 @@
-Also was mache ich jetzt mit den informationen, wo die Figur ist? 
-Hat jedes erkennt Objekt vielleicht eine eindeutige ID?
+- Adrian hat gesagt, dass du IEEE zitierstil empfielst. Passt das so? Ist hald mit Nummern.
 
-Kann ich eine Funktion schreiben, in die ich die eindeutige ID eingebe und dann die Information zurück bekomme, wie weit das
-Objekt entfernt ist?
+- Inhaltsverzeichnis besprechen
 
-Inwiefern habe ich OpenCV Stereovision eingesetzt?
+- Hyperparameter tuning?
 
+- ich habe mit den empfohlenen defaultparameter mit yolov5 bessere ergebnisse erzielt als mit yolov8. Habe ich was falsch gemacht?
 
+- Passt Inhaltsverzeichnis so?
 
---> Bild machen mit beiden Kameras
---> Schachbrett erkennen mit color camera
---> detection und mapping auf grid von color camera
---> funktion schreiben, in die eine eindeutige ID eingegeben wird und die Information zurück bekommen wird, wie weit das Objekt entfernt ist
+- Soll ich chronologisch beschreiben, was ich gemacht habe? Also auch, dass ich zuerst zu wenige Daten habe und wie ich dann drauf gekommen bin, dass ich mehr Daten brauche und darauf hin augmentations gemacht habe?
 
+- Dann anschließend die Ergebnisse aller 3 Algorithmen, welche auf den großen datensatz trainiert sind, vergleichen
 
+- Was genau ist der Sinn von SolvePnP? Die Berücksichtigung der Kameradistortion? Damit also die Koordinaten genauer sind?
 
+- Was soll mit jedem generierten Zug zurückgeliefert werden? Welche koordinaten?
 
-Könnt ihr mir noch konkrete angaben geben, was ich damit machen soll?
--> Ich kann vom erkennten schachbrett ein feld abfragen mit .getKey und dann den Mittelpunkt berechnen und dann in 3D kooridnaten umwandeln
-https://medium.com/@yasuhirachiba/converting-2d-image-coordinates-to-3d-coordinates-using-ros-intel-realsense-d435-kinect-88621e8e733a
-
-Ich kann den Abstand und die 3D koordinate einer Bestimmten Figur zurückgeben
+- Passt das Zitieren mit den Zahlen im Text so?

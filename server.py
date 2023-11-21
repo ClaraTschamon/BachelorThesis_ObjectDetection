@@ -3,14 +3,14 @@ import base64
 from flask import Flask, request, jsonify
 import numpy as np
 
-import chessboardDetection
+import chessboardDetector
 import chessGame
 from chessGame import ChessGame
 from inference import *
 
 app = Flask(__name__)
 
-chessboard_detector = chessboardDetection.ChessboardDetection()
+chessboard_detector = chessboardDetector.ChessboardDetection()
 chess_game = ChessGame()
 
 

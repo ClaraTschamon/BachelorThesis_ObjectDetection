@@ -1,4 +1,4 @@
-from chessboardDetection import *
+from chessboardDetector import *
 
 
 class OtherChessboardDetection:
