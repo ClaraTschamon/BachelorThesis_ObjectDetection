@@ -66,3 +66,4 @@ ipython_config.py
 # Training results because some files are too big
 /training_results/runs/train/show_in_tensorboard/*
 /training_results/runs/train/results_rcnn/output*/model_final.pth
+/training_results/runs/train/results_rcnn/output*/instances_predictions.pth
