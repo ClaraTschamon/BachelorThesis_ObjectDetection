@@ -57,6 +57,7 @@ class ChessApp:
         self.grid = None
 
         self.main_screen = tk.Tk()
+        self.main_screen.iconbitmap('./assets/chess_icon.ico')
         self.main_screen.geometry("1200x750")
         self.main_screen.title("Schach")
 
@@ -142,7 +143,7 @@ class ChessApp:
                 self.start_button.config(text="Fertig", command=partial(self._start_game))
                 self.retake_button.grid(row=0, column=1, padx=self.padding, pady=self.padding)
                 self.info_label.config(
-                    text="Schachbrett wurde erkannt. Jetzt bitte die Schachfiguren aufstellen und auf 'Fertig' klicken.")
+                    text="Schachbrett wurde erkannt. Jetzt die Schachfiguren aufstellen und auf 'Fertig' klicken.")
                 # Make the info_label visible
                 self.info_label.grid(row=1, column=0, columnspan=2, padx=self.padding, pady=self.padding)
 
@@ -240,6 +241,8 @@ class ChessApp:
 
         response = requests.post(self.url + '/make-move', json={'recognized_pieces': recognized_pieces})
         data = response.json()
+        print(data)
+
         fen = data['fen']
         valid = data['valid']
         self.board = chess.Board(fen=fen)
@@ -247,6 +250,7 @@ class ChessApp:
         self._update_board_img()
 
         if valid:
+            computer_move = data['computer_move']
             if 'checkmate' in data:
                 checkmate = data['checkmate']
                 if checkmate:
@@ -256,28 +260,30 @@ class ChessApp:
                     elif checkmate == 'white':
                         self.info_label.config(text="Weißer Spieler ist Schachmatt!")
                         self._stop_game()
-                elif 'check' in data:
-                    check = data['check']
-                    if check:
-                        if check == 'black':
-                            self.info_label.config(text="Schwarzer Spieler ist Schach!")
-                        elif check == 'white':
-                            self.info_label.config(text="Weißer Spieler ist Schach!")
-                    else:
-                        self.info_label.config(text="Dies war ein gültiger Zug.", fg=self.COLOR_GREEN)
+            elif 'check' in data:
+                check = data['check']
+                if check:
+                    if check == 'black':
+                        self.info_label.config(text="Schwarzer Spieler ist Schach!")
+                    elif check == 'white':
+                        self.info_label.config(text=f"Weißer Spieler ist Schach! Computer hat {computer_move} gespielt.")
+                else:
+                    self.info_label.config(text=f"Das war ein gültiger Zug. Computer hat {computer_move} gespielt.", fg=self.COLOR_GREEN)
             else:
-                self.info_label.config(text="Dies war ein gültiger Zug.", fg=self.COLOR_GREEN)
+                self.info_label.config(text=f"Das war ein gültiger Zug. Computer hat {computer_move} gespielt.", fg=self.COLOR_GREEN)
 
         else:
             self.info_label.config(text="Ungültiger Zug oder ungültige Aufstellung!", fg=self.COLOR_RED)
 
         self._play_game(None)
 
+
     def _play_game(self, recognized_pieces):
 
         if recognized_pieces is not None:
             response = requests.get(self.url + '/get-fen', json={'recognized_pieces': recognized_pieces})
             data = response.json()
+            print(data)
             fen = data['fen']
             self.board = chess.Board(fen=fen)
             self.valid_board = data['valid']
@@ -293,9 +299,9 @@ class ChessApp:
         self.retake_button.grid(row=0, column=2, padx=self.padding, pady=self.padding)
 
         if self.valid_board:
-            self.valid_label.config(text="Gültiges Brett", fg=self.COLOR_GREEN)
+            self.valid_label.config(text="Gültige Aufstellung", fg=self.COLOR_GREEN)
         else:
-            self.valid_label.config(text="Ungültiges Brett", fg=self.COLOR_RED)
+            self.valid_label.config(text="Ungültige Aufstellung", fg=self.COLOR_RED)
         self.valid_label.grid(row=1, column=0, columnspan=2, pady=self.padding / 2)
 
         self.info_label.grid(row=2, column=0, columnspan=2, pady=self.padding / 2)

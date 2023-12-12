@@ -2,16 +2,6 @@ import chess.svg
 from stockfish import Stockfish
 
 
-def get_is_check(fen):
-    board = chess.Board(fen)
-    return board.is_check()
-
-
-def get_is_checkmate(fen):
-    board = chess.Board(fen)
-    return board.is_checkmate()
-
-
 class ChessGame:
 
     def __init__(self):
@@ -73,51 +63,48 @@ class ChessGame:
     def get_fen_string(self, recognized_pieces):
         fen = self._make_fen_string(recognized_pieces)
         self.current_board = chess.Board(fen)
+        self.current_board.turn = chess.WHITE
         valid = self.current_board.is_valid()
         return fen, valid
 
     """ 
     returns fen string, boolean for if the move was valid, boolean if black is check, 
-    boolean if black is checkmate, boolean if white is check, boolean if white is checkmate
+    boolean if black is checkmate, boolean if white is check, boolean if white is checkmate, computer move as string
     """
-
     def make_move(self, recognized_pieces):
         fen = self._make_fen_string(recognized_pieces)
-
-        # check if players move was valid and then make the computer move one black figure
         new_board = chess.Board(fen)
-        if not new_board.is_valid():
-            print("Invalid board")
-            return fen, False, False, False, False, False
 
+        if new_board.is_check():
+            return fen, True, False, False, False, True, None
+
+        if not new_board.is_valid():
+            print(new_board.status())
+            print("Invalid board")
+            return fen, False, False, False, False, False, None
+
+        # make the players move
         for move in self.current_board.legal_moves:
             self.current_board.push(move)
             if self.current_board.board_fen() == new_board.board_fen():
-                # it was a valid move and now we need to check if the black player is in check
-                if self.current_board.is_check():  # https://python-chess.readthedocs.io/en/latest/core.html
-                    print("Black is in check")
-                    return fen, True, True, False, False, False
+                # now the computer needs make a move
+                self.stockfish.set_fen_position(fen)
+                self.current_board.turn = chess.BLACK
+                self.current_board.push_san(self.stockfish.get_best_move())
+                print("Computer move: " + str(self.current_board.peek()))
+                # check if the white player is in check
+                if self.current_board.is_check():
+                    print("White is in check")
+                    self.current_board.turn = chess.WHITE
+                    return self.current_board.fen(), True, False, False, True, False, str(self.current_board.peek())
                 elif self.current_board.is_checkmate():
-                    print("Black is in checkmate")
-                    return fen, True, False, True, False, False
-                else:
-                    # now the computer needs make a move
-                    self.stockfish.set_fen_position(fen)
-                    self.current_board.turn = chess.BLACK
-                    self.current_board.push_san(self.stockfish.get_best_move())
-                    print("Computer move: " + str(self.current_board.peek()))
-                    # check if the white player is in check
-                    if self.current_board.is_check():
-                        print("White is in check")
-                        return fen, True, False, False, True, False
-                    elif self.current_board.is_checkmate():
-                        print("White is in checkmate")
-                        return fen, True, False, False, False, True
-                    else:  # no one is check
-                        self.current_board.turn = chess.WHITE
-                        return self.current_board.fen(), True, False, False, False, False
-
+                    print("White is in checkmate")
+                    return fen, True, False, False, False, True, str(self.current_board.peek())
+                else:  # no one is check
+                    self.current_board.turn = chess.WHITE
+                    return self.current_board.fen(), True, False, False, False, False, str(self.current_board.peek())
             _ = self.current_board.pop()
+
         else:
             print("Invalid move")
-            return fen, False, False, False, False, False  # players move was invalid
+            return fen, False, False, False, False, False, None

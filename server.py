@@ -4,7 +4,6 @@ from flask import Flask, request, jsonify
 import numpy as np
 
 import chessboardDetector
-import chessGame
 from chessGame import ChessGame
 from inference import *
 
@@ -22,7 +21,11 @@ def detect_chessboard():
     image_file = request.files['image']
     image = cv2.imdecode(np.fromstring(image_file.read(), np.uint8), cv2.IMREAD_COLOR)
 
-    grid, result_image = chessboard_detector.detect_chessboard(image)
+    try:
+        grid, result_image = chessboard_detector.detect_chessboard(image)
+    except Exception as e:
+        print(f'Exception occurred while detecting the chessboard: {str(e)}')
+        return jsonify({'error': 'Invalid image or error: {}'.format(str(e))}), 400
 
     # Encode the result image as a base64 string
     _, result_image_data = cv2.imencode('.png', result_image)
@@ -63,39 +66,16 @@ def get_fen():
     return jsonify({'fen': fen, 'valid': valid})
 
 
-@app.route('/is-check', methods=['GET'])  # noch nicht getestet
-def is_check():
-    fen = request.args.get('fen')
-
-    if not fen:
-        return jsonify({'error': 'FEN not provided'}), 400
-
-    is_check_result = chessGame.get_is_check(fen)
-
-    return jsonify({'is_check': is_check_result})
-
-
-@app.route('/is-checkmate', methods=['GET'])  # noch nicht getestet
-def is_checkmate():
-    fen = request.args.get('fen')
-
-    if not fen:
-        return jsonify({'error': 'FEN not provided'}), 400
-
-    is_checkmate_result = chessGame.get_is_checkmate(fen)
-
-    return jsonify({'is_checkmate': is_checkmate_result})
-
-
 @app.route('/make-move', methods=['POST'])
 def make_move():
     try:
         data = request.get_json()
         recognized_pieces = data['recognized_pieces']
-        fen, valid, black_check, black_checkmate, white_check, white_checkmate = chess_game.make_move(recognized_pieces)
+        fen, valid, black_check, black_checkmate, white_check, white_checkmate, computer_move = chess_game.make_move(recognized_pieces)
         response_data = {
             'fen': fen,
-            'valid': valid
+            'valid': valid,
+            'computer_move': computer_move
         }
 
         if black_checkmate:

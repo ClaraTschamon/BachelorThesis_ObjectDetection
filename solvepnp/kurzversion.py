@@ -1,6 +1,5 @@
 import json
 
-import matplotlib
 import numpy as np
 import cv2
 import torch
@@ -9,7 +8,6 @@ import app
 import chessboardDetector
 
 import os
-os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 #image = app.get_image()
 #cv2.imwrite("image.png", image)
@@ -22,13 +20,15 @@ object_points3d = []
 
 for key, point in chessboard_corners.items():
     object_points2d.extend([point['corner_a'], point['corner_b'], point['corner_c'], point['corner_d']])
+
+    #Hier wird angenommen, dass das Schachbrett flach auf der Ebene z=0 liegt, und die 3D-Koordinaten haben daher eine feste z-Koordinate von 0.
     object_points3d.extend([(point['corner_a'][0], point['corner_a'][1], 0),
                             (point['corner_b'][0], point['corner_b'][1], 0),
                             (point['corner_c'][0], point['corner_c'][1], 0),
                             (point['corner_d'][0], point['corner_d'][1], 0)])
 
-object_points2d = np.array(object_points2d, dtype=np.float32)
-object_points3d = np.array(object_points3d, dtype=np.float32)
+object_points2d = np.array(object_points2d, dtype=np.float32) # Bildkoordinatensystem
+object_points3d = np.array(object_points3d, dtype=np.float32) # Bildkoordinatensystem
 
 # load previously saved calibration data
 #calib_data = np.load('./cameraCalibration/CameraParams.npz')
@@ -60,17 +60,11 @@ results.show()
 res = results.pandas().xyxy[0]
 
 bounding_boxes = res.to_json(orient="records")
-bounding_boxes = json.loads(bounding_boxes)
+bounding_boxes = json.loads(bounding_boxes) # Bildkoordinatensystem
 
 print('bounding boxes:', bounding_boxes)
 
 
-# Create a new list to store bounding boxes with projected points
-#Project Bounding Box Points:
-#For each detected bounding box, the code extracts the 2D coordinates of the box and converts them to 3D points with the height information.
-#It projects these 3D points back onto the 2D image plane using the camera pose information obtained earlier.
-#It draws circles at the projected points on the image and adds these projected points to the bounding box data.
-#The modified bounding boxes are stored in a new list.
 bounding_boxes_with_points = []
 
 for box in bounding_boxes:
@@ -80,10 +74,17 @@ for box in bounding_boxes:
     ymax = box['ymax']
 
     # Create an 3D array of the 2D points of the bounding box by adding the height information
-    points_3d = np.array([[xmin, ymin, 0], [xmax, ymin, 0], [xmax, ymax, (ymax-ymin)], [xmin, ymax, (ymax-ymin)]], dtype=np.float32)
+    points_3d = np.array([[xmin, ymin, 0], [xmax, ymin, 0], [xmax, ymax, (ymax-ymin)], [xmin, ymax, (ymax-ymin)]], dtype=np.float32) # Bildkoordinatensystem
+    # draw the points
+    for point in points_3d:
+        x, y = point[0], point[1]
+        cv2.circle(image, (int(x), int(y)), 7, (0, 0, 0), -1)
 
     # Project the 3D points of the bounding box back to the 2D image plane
+    # Im vorliegenden Code werden die Ecken der Bounding Boxes als 3D-Punkte im Bildkoordinatensystem betrachtet.
+    # Diese werden dann mithilfe der Funktion cv2.projectPoints unter Berücksichtigung der Kameraparameter in die 2D-Bildebene projiziert.
     projected_points, _ = cv2.projectPoints(points_3d, rvec, tvec, cmx, dist)
+    print('projected points', projected_points)
 
     # Draw the projected points on the image
     for point in projected_points:
@@ -99,116 +100,6 @@ for box in bounding_boxes:
 cv2.imshow("Projected Bounding Boxes", image)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-
-
-#######################################
-import numpy as np
-import cv2
-
-# Zeichnen Sie die 3D-Punkte object_points3d im Bild
-for point in object_points3d:
-    # Konvertieren Sie die 3D-Punkte in 2D-Bildkoordinaten
-    x = point[0]
-    y = point[1]
-
-    # Zeichnen Sie Kreise an den 2D-Koordinaten
-    cv2.circle(image, (int(x), int(y)), 5, (0, 0, 0), -1)  # Black
-
-
-## Anzeigen des Bildes
-#cv2.imshow("3D Points in Image", image)
-#cv2.waitKey(0)
-#cv2.destroyAllWindows()
-
-##############################################################################################################
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
-matplotlib.use('TkAgg')  # Use the TkAgg backend (or choose an appropriate one for your system)
-
-# Create a Matplotlib figure
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-
-# Plot the 3D points on the chessboard (z = 0)
-object_points3d = np.array(object_points3d)
-ax.scatter(object_points3d[:, 0], object_points3d[:, 1], object_points3d[:, 2], c='g', marker='o', label='Chessboard Points (z = 0)')
-
-# Extract and plot the positions of objects from bounding boxes
-for bbox in bounding_boxes:
-    xmin = bbox['xmin']
-    xmax = bbox['xmax']
-    ymin = bbox['ymin']
-    ymax = bbox['ymax']
-
-    # Calculate the height for this bounding box
-    height = ymax - ymin
-
-    # Calculate the corners of the object based on the bounding box
-    bottom_corners_2d = [(xmin, ymin), (xmax, ymin)]
-    top_corners_2d = [(xmin, ymax), (xmax, ymax)]
-
-    # Project the 2D corners into 3D using cv2.projectPoints
-    bottom_corners_3d = []
-    top_corners_3d = []
-
-    for corner_2d in bottom_corners_2d:
-        object_point_2d = np.array([corner_2d[0], corner_2d[1]], dtype=np.float32)
-        object_point_3d, _ = cv2.projectPoints(
-            np.array([[object_point_2d[0], object_point_2d[1], 0]], dtype=np.float32), rvec, tvec, cmx, dist)
-        bottom_corners_3d.append(object_point_3d[0].flatten())
-
-    for corner_2d in top_corners_2d:
-        object_point_2d = np.array([corner_2d[0], corner_2d[1]], dtype=np.float32)
-        object_point_3d, _ = cv2.projectPoints(
-            np.array([[object_point_2d[0], object_point_2d[1], height]], dtype=np.float32), rvec, tvec, cmx, dist)
-        top_corners_3d.append(object_point_3d[0].flatten())
-
-    bottom_corners_3d = np.array(bottom_corners_3d)
-    top_corners_3d = np.array(top_corners_3d)
-
-    print("bottom corners 3d:", bottom_corners_3d)
-    print("top corners 3d:", top_corners_3d)
-
-    # Plot the bottom corners
-    ax.plot(bottom_corners_3d[[0, 1, 1, 0, 0], 0], bottom_corners_3d[[0, 1, 1, 0, 0], 1],
-            0, c='b')
-
-    # Plot the top corners
-    ax.plot(top_corners_3d[[0, 1, 1, 0, 0], 0], top_corners_3d[[0, 1, 1, 0, 0], 1], height,
-            c='b')
-
-    # Connect the bottom and top corners to represent the bounding box height
-    for i in range(2):
-        ax.plot([bottom_corners_3d[i, 0], top_corners_3d[i, 0]], [bottom_corners_3d[i, 1], top_corners_3d[i, 1]],
-                [0, height], c='b')
-
-    # Calculate the center point of the bounding box
-    center_x = (xmin + xmax) / 2
-    center_y = (ymin + ymax) / 2
-    center_z = height / 2
-    # Plot the center point of the bounding box
-    ax.scatter(center_x, center_y, center_z, c='r', marker='o', label='Center Point')
-
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
-
-
-scale = 500
-ax.set_xlim(-5, scale)
-ax.set_ylim(-5, scale)
-ax.set_zlim(-5, 100)
-
-plt.legend()
-
-# Show the 3D scatter plot
-#plt.savefig('3d_plot.png')
-plt.show()
-
-##############################################################################################################
-import cv2
-import numpy as np
 
 def draw_axes_with_projected_points(image, bounding_boxes):
     for box in bounding_boxes:
