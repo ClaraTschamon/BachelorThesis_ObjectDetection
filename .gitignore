@@ -64,6 +64,6 @@ ipython_config.py
 /.idea/vcs.xml
 
 # Training results because some files are too big
-/training_results/runs/train/show_in_tensorboard/*
-/training_results/runs/train/results_rcnn/output*/model_final.pth
-/training_results/runs/train/results_rcnn/output*/evaluation/instances_predictions.pth
+/training_results/show_in_tensorboard/*
+/training_results/results_rcnn/output*/model_final.pth
+/training_results/results_rcnn/output*/evaluation/instances_predictions.pth
