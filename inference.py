@@ -51,17 +51,13 @@ def calculate_points_in_bbox(data_json, image):
 
 def inference_yolov5(image, grid):
     model = torch.hub.load('ultralytics/yolov5', 'custom',
-                           path='training_results/runs/train/results_yolov5m/exp5/weights/best.pt')
+                           path='training_results/results_yolov5m/exp5/weights/best.pt')
 
-    # model.conf = 0.7  # NMS confidence threshold
-    # iou = 0.45  # NMS IoU threshold
-    # agnostic = False  # NMS class-agnostic
-    # multi_label = False  # NMS multiple labels per box
-    # amp = False  # Automatic Mixed Precision (AMP) inference
+    model.conf = 0.7  # NMS confidence threshold
 
     # Inference
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    results = model(image, augment=True)
+    results = model(image)
     res = results.pandas().xyxy[0]
 
     data_json = res.to_json(orient="records")
@@ -73,7 +69,7 @@ def inference_yolov5(image, grid):
 
 
 def inference_yolov8(image, grid):
-    model = YOLO(f'training_results/runs/train/results_yolov8m/exp2/weights/best.pt')
+    model = YOLO(f'training_results/results_yolov8m/exp2/weights/best.pt')
 
     # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 

@@ -368,9 +368,6 @@ class ChessboardDetection:
                 cv2.line(image, (x1, y1), (x2, y2), COLOR_BLUE, 2)
                 vertical_lines.append((rho, theta))
 
-            else:
-                cv2.line(image, (x1, y1), (x2, y2), COLOR_YELLOW, 2)
-
         display_image('Detected Lines', image)
 
         return horizontal_lines, vertical_lines

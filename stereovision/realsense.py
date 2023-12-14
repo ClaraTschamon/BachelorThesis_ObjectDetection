@@ -3,7 +3,7 @@ import numpy as np
 import pyrealsense2 as rs
 import torch
 
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='../training_results/runs/train/results_yolov5m/exp3/weights/best.pt')  # local model
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='../training_results/results_yolov5m/exp3/weights/best.pt')  # local model
 
 # Set up the RealSense D455 camera
 pipeline = rs.pipeline()
